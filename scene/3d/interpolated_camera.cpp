@@ -37,7 +37,9 @@ void InterpolatedCamera::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
 
+			WARN_DEPRECATED_MSG("InterpolatedCamera has been deprecated and will be removed in Godot 4.0.");
 			_update_process_mode();
+
 		} break;
 		case NOTIFICATION_INTERNAL_PROCESS:
 		case NOTIFICATION_INTERNAL_PHYSICS_PROCESS: {
@@ -150,6 +152,11 @@ void InterpolatedCamera::set_speed(real_t p_speed) {
 real_t InterpolatedCamera::get_speed() const {
 
 	return speed;
+}
+
+String InterpolatedCamera::get_configuration_warning() const {
+
+	return TTR("InterpolatedCamera has been deprecated and will be removed in Godot 4.0.");
 }
 
 void InterpolatedCamera::_bind_methods() {

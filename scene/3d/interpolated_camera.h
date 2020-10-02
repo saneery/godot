@@ -67,6 +67,7 @@ public:
 
 	void set_process_mode(InterpolatedCameraProcessMode p_mode);
 	InterpolatedCameraProcessMode get_process_mode() const;
+	String get_configuration_warning() const;
 
 	InterpolatedCamera();
 };

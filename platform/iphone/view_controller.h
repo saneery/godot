@@ -31,20 +31,11 @@
 #import <GameKit/GameKit.h>
 #import <UIKit/UIKit.h>
 
+@class GodotView;
+
 @interface ViewController : UIViewController <GKGameCenterControllerDelegate> {
 };
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:
-		(UIInterfaceOrientation)p_orientation;
-
-- (void)didReceiveMemoryWarning;
-
-- (void)viewDidLoad;
-
-- (UIRectEdge)preferredScreenEdgesDeferringSystemGestures;
-
-- (BOOL)prefersStatusBarHidden;
-
-- (BOOL)prefersHomeIndicatorAutoHidden;
+- (GodotView *)godotView;
 
 @end

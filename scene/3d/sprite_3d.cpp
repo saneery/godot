@@ -394,10 +394,11 @@ SpriteBase3D::SpriteBase3D() {
 	VS::get_singleton()->material_set_param(material, "uv1_scale", Vector3(1, 1, 1));
 	VS::get_singleton()->material_set_param(material, "uv2_offset", Vector3(0, 0, 0));
 	VS::get_singleton()->material_set_param(material, "uv2_scale", Vector3(1, 1, 1));
+	VS::get_singleton()->material_set_param(material, "alpha_scissor_threshold", 0.98);
 
 	mesh = VisualServer::get_singleton()->mesh_create();
 
-	PoolVector2Array mesh_vertices;
+	PoolVector3Array mesh_vertices;
 	PoolVector3Array mesh_normals;
 	PoolRealArray mesh_tangents;
 	PoolColorArray mesh_colors;
@@ -418,7 +419,7 @@ SpriteBase3D::SpriteBase3D() {
 		mesh_tangents.write()[i * 4 + 3] = 0.0;
 		mesh_colors.write()[i] = Color(1.0, 1.0, 1.0, 1.0);
 		mesh_uvs.write()[i] = Vector2(0.0, 0.0);
-		mesh_vertices.write()[i] = Vector2(0.0, 0.0);
+		mesh_vertices.write()[i] = Vector3(0.0, 0.0, 0.0);
 	}
 
 	Array mesh_array;
@@ -592,7 +593,9 @@ void Sprite3D::_draw() {
 			copymem(&write_buffer[i * mesh_stride + mesh_surface_offsets[VS::ARRAY_TEX_UV]], v_uv, 8);
 		}
 
-		copymem(&write_buffer[i * mesh_stride + mesh_surface_offsets[VS::ARRAY_VERTEX]], &vertices[i], sizeof(float) * 2);
+		float v_vertex[3] = { vtx.x, vtx.y, vtx.z };
+
+		copymem(&write_buffer[i * mesh_stride + mesh_surface_offsets[VS::ARRAY_VERTEX]], &v_vertex, sizeof(float) * 3);
 		copymem(&write_buffer[i * mesh_stride + mesh_surface_offsets[VS::ARRAY_NORMAL]], v_normal, 4);
 		copymem(&write_buffer[i * mesh_stride + mesh_surface_offsets[VS::ARRAY_TANGENT]], v_tangent, 4);
 		copymem(&write_buffer[i * mesh_stride + mesh_surface_offsets[VS::ARRAY_COLOR]], v_color, 4);
@@ -782,8 +785,8 @@ void Sprite3D::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture"), "set_texture", "get_texture");
 	ADD_GROUP("Animation", "");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "vframes", PROPERTY_HINT_RANGE, "1,16384,1"), "set_vframes", "get_vframes");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "hframes", PROPERTY_HINT_RANGE, "1,16384,1"), "set_hframes", "get_hframes");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "vframes", PROPERTY_HINT_RANGE, "1,16384,1"), "set_vframes", "get_vframes");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "frame"), "set_frame", "get_frame");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "frame_coords", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR), "set_frame_coords", "get_frame_coords");
 	ADD_GROUP("Region", "region_");
@@ -957,8 +960,9 @@ void AnimatedSprite3D::_draw() {
 			float v_uv[2] = { uvs[i].x, uvs[i].y };
 			copymem(&write_buffer[i * mesh_stride + mesh_surface_offsets[VS::ARRAY_TEX_UV]], v_uv, 8);
 		}
+		float v_vertex[3] = { vtx.x, vtx.y, vtx.z };
 
-		copymem(&write_buffer[i * mesh_stride + mesh_surface_offsets[VS::ARRAY_VERTEX]], &vertices[i], sizeof(float) * 2);
+		copymem(&write_buffer[i * mesh_stride + mesh_surface_offsets[VS::ARRAY_VERTEX]], &v_vertex, sizeof(float) * 3);
 		copymem(&write_buffer[i * mesh_stride + mesh_surface_offsets[VS::ARRAY_NORMAL]], v_normal, 4);
 		copymem(&write_buffer[i * mesh_stride + mesh_surface_offsets[VS::ARRAY_TANGENT]], v_tangent, 4);
 		copymem(&write_buffer[i * mesh_stride + mesh_surface_offsets[VS::ARRAY_COLOR]], v_color, 4);
@@ -1220,11 +1224,15 @@ StringName AnimatedSprite3D::get_animation() const {
 
 String AnimatedSprite3D::get_configuration_warning() const {
 
+	String warning = SpriteBase3D::get_configuration_warning();
 	if (frames.is_null()) {
-		return TTR("A SpriteFrames resource must be created or set in the \"Frames\" property in order for AnimatedSprite3D to display frames.");
+		if (warning != String()) {
+			warning += "\n\n";
+		}
+		warning += TTR("A SpriteFrames resource must be created or set in the \"Frames\" property in order for AnimatedSprite3D to display frames.");
 	}
 
-	return String();
+	return warning;
 }
 
 void AnimatedSprite3D::_bind_methods() {
